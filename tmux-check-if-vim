@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+# Used this from thalesmello from:
+#
+#    https://github.com/pypa/pipenv/issues/1407
+# 
+# This fixes the ussue of the pane navigation in vim inside tmux when inside
+# a session run by pipenv shell. This needs to be assigned to the is_vim
+# variable in vim-tmux-navigator.tmux.
+#
+# It also requires you to install pstree if on a macOS: `brew install pstree`
+
+pane_tty=$1
+pipenv_pid=$(ps -o pid= -o command= -t $pane_tty | grep -v grep | grep pipenv | head -n 1 | awk '{ print $1 }')
+if [[ -n "$pipenv_pid" ]]; then
+  ps -o state=,comm= -p $(pstree -p $pipenv_pid | awk '{ print $2 }' | grep -v '[^0-9]')
+else
+  ps -o state=,comm= -t $pane_tty
+fi | grep -iqE '^[^TXZ ]+ +(\\S+\\/)?g?(view|n?vim?x?)(diff)?$'
